@@ -14,6 +14,7 @@ import requests
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+import colorsys
 from character_emojis import format_character_name
 
 
@@ -113,17 +114,71 @@ class ProfileSystem:
         return any(domain in url for domain in valid_domains)
 
 
-def create_profile_embed(user: discord.Member, profile: PlayerProfile, 
+async def extract_dominant_color_from_banner(banner_url: str) -> discord.Color:
+    """Extract dominant color from banner image for embed theming"""
+    try:
+        response = requests.get(banner_url, timeout=5)
+        if response.status_code == 200:
+            img = Image.open(BytesIO(response.content))
+            
+            # Resize for faster processing
+            img = img.resize((150, 150))
+            
+            # Convert to RGB if necessary
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Get pixels
+            pixels = list(img.getdata())
+            
+            # Find most common color (excluding very dark/light)
+            color_count = {}
+            for pixel in pixels:
+                r, g, b = pixel
+                # Skip very dark or very light pixels
+                brightness = sum(pixel) / 3
+                if 30 < brightness < 225:
+                    # Round to reduce variations
+                    r = (r // 10) * 10
+                    g = (g // 10) * 10
+                    b = (b // 10) * 10
+                    color = (r, g, b)
+                    color_count[color] = color_count.get(color, 0) + 1
+            
+            if color_count:
+                # Get most common color
+                dominant = max(color_count, key=color_count.get)
+                
+                # Increase saturation for better visual
+                h, s, v = colorsys.rgb_to_hsv(dominant[0]/255, dominant[1]/255, dominant[2]/255)
+                s = min(s * 1.3, 1.0)  # Boost saturation
+                v = max(min(v * 1.2, 1.0), 0.4)  # Adjust brightness
+                r, g, b = colorsys.hsv_to_rgb(h, s, v)
+                
+                return discord.Color.from_rgb(int(r*255), int(g*255), int(b*255))
+    except Exception as e:
+        print(f"Error extracting color from banner: {e}")
+    
+    # Default to purple if extraction fails
+    return discord.Color.purple()
+
+
+async def create_profile_embed(user: discord.Member, profile: PlayerProfile, 
                          multi_mode_stats) -> discord.Embed:
     """Create beautiful profile embed with all stats"""
     
     # Get stats from all modes
     all_stats = multi_mode_stats.get_all_modes_summary(user)
     
-    # Create embed with banner if set
+    # Extract color from banner or use default
+    embed_color = discord.Color.purple()
+    if profile.banner_url:
+        embed_color = await extract_dominant_color_from_banner(profile.banner_url)
+    
+    # Create embed with extracted color
     embed = discord.Embed(
         title=f"🎮 {user.display_name}'s Profile",
-        color=discord.Color.purple()
+        color=embed_color
     )
     
     # Set banner image if available
