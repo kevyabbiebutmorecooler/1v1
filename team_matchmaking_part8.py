@@ -46,6 +46,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
     - Team matchmaking commands (2v2, 3v3, 4v4)
     - Multi-mode stats commands
     - Team match game commands (ban, pick, result)
+    - Admin commands
     """
     
     # Initialize systems
@@ -390,7 +391,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
     async def survivor_autocomplete(interaction: discord.Interaction, current: str):
         from team_matchmaking_part10 import SURVIVORS
         filtered = [s for s in SURVIVORS if current.lower() in s.lower()] if current else SURVIVORS
-        return [app_commands.Choice(name=s, value=s) for k in filtered[:25]]
+        return [app_commands.Choice(name=s, value=s) for s in filtered[:25]]
     
     @tree.command(name="profileplaytime", description="Set your playtime hours")
     @app_commands.describe(hours="Total playtime in hours")
@@ -536,6 +537,229 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
                 "❌ No active match found in this thread!",
                 ephemeral=True
             )
+    
+    # ==================== ADMIN PROFILE COMMANDS ====================
+    
+    @tree.command(name="setbannerprofile", description="[ADMIN] Set a user's profile banner")
+    @app_commands.describe(
+        user="Target user",
+        banner_url="Discord CDN image URL"
+    )
+    async def admin_set_banner(interaction: discord.Interaction, user: discord.Member, banner_url: str):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        # Validate URL
+        if not banner_url.startswith(('https://cdn.discordapp.com/', 'https://media.discordapp.net/')):
+            await interaction.response.send_message(
+                "❌ Please use a Discord CDN link!\n"
+                "Right-click an image in Discord → Copy Link",
+                ephemeral=True
+            )
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        profile.banner_url = banner_url
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Profile Banner Updated (Admin)",
+            description=f"Set banner for {user.mention}",
+            color=discord.Color.green()
+        )
+        embed.set_image(url=banner_url)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @tree.command(name="setkillerwinprofile", description="[ADMIN] Set a user's killer wins")
+    @app_commands.describe(
+        user="Target user",
+        wins="Killer wins count"
+    )
+    async def admin_set_killer_wins(interaction: discord.Interaction, user: discord.Member, wins: int):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        if wins < 0:
+            await interaction.response.send_message("❌ Wins cannot be negative!", ephemeral=True)
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_wins = profile.killer_wins
+        profile.killer_wins = wins
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Killer Wins Updated (Admin)",
+            description=f"Updated {user.mention}'s killer wins",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Value", value=str(old_wins), inline=True)
+        embed.add_field(name="New Value", value=str(wins), inline=True)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @tree.command(name="setsurvivorwinprofile", description="[ADMIN] Set a user's survivor wins")
+    @app_commands.describe(
+        user="Target user",
+        wins="Survivor wins count"
+    )
+    async def admin_set_survivor_wins(interaction: discord.Interaction, user: discord.Member, wins: int):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        if wins < 0:
+            await interaction.response.send_message("❌ Wins cannot be negative!", ephemeral=True)
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_wins = profile.survivor_wins
+        profile.survivor_wins = wins
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Survivor Wins Updated (Admin)",
+            description=f"Updated {user.mention}'s survivor wins",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Value", value=str(old_wins), inline=True)
+        embed.add_field(name="New Value", value=str(wins), inline=True)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @tree.command(name="setbioprofile", description="[ADMIN] Set a user's profile bio")
+    @app_commands.describe(
+        user="Target user",
+        bio="Bio text (max 200 characters)"
+    )
+    async def admin_set_bio(interaction: discord.Interaction, user: discord.Member, bio: str):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        if len(bio) > 200:
+            await interaction.response.send_message(
+                f"❌ Bio too long! ({len(bio)}/200 characters)",
+                ephemeral=True
+            )
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_bio = profile.bio or "(No bio)"
+        profile.bio = bio
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Profile Bio Updated (Admin)",
+            description=f"Updated {user.mention}'s bio",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Bio", value=old_bio, inline=False)
+        embed.add_field(name="New Bio", value=bio, inline=False)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @tree.command(name="setkillerprofile", description="[ADMIN] Set a user's main killer")
+    @app_commands.describe(
+        user="Target user",
+        killer="Main killer character"
+    )
+    async def admin_set_killer(interaction: discord.Interaction, user: discord.Member, killer: str):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_killer = profile.main_killer or "(None)"
+        profile.main_killer = killer
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Main Killer Updated (Admin)",
+            description=f"Updated {user.mention}'s main killer",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Main", value=old_killer, inline=True)
+        embed.add_field(name="New Main", value=killer, inline=True)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @admin_set_killer.autocomplete('killer')
+    async def admin_killer_autocomplete(interaction: discord.Interaction, current: str):
+        from team_matchmaking_part10 import KILLERS
+        filtered = [k for k in KILLERS if current.lower() in k.lower()] if current else KILLERS
+        return [app_commands.Choice(name=k, value=k) for k in filtered[:25]]
+    
+    @tree.command(name="setsurvivorprofile", description="[ADMIN] Set a user's main survivor")
+    @app_commands.describe(
+        user="Target user",
+        survivor="Main survivor character"
+    )
+    async def admin_set_survivor(interaction: discord.Interaction, user: discord.Member, survivor: str):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_survivor = profile.main_survivor or "(None)"
+        profile.main_survivor = survivor
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Main Survivor Updated (Admin)",
+            description=f"Updated {user.mention}'s main survivor",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Main", value=old_survivor, inline=True)
+        embed.add_field(name="New Main", value=survivor, inline=True)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
+    @admin_set_survivor.autocomplete('survivor')
+    async def admin_survivor_autocomplete(interaction: discord.Interaction, current: str):
+        from team_matchmaking_part10 import SURVIVORS
+        filtered = [s for s in SURVIVORS if current.lower() in s.lower()] if current else SURVIVORS
+        return [app_commands.Choice(name=s, value=s) for s in filtered[:25]]
+    
+    @tree.command(name="setplaytimeprofile", description="[ADMIN] Set a user's playtime hours")
+    @app_commands.describe(
+        user="Target user",
+        hours="Playtime in hours"
+    )
+    async def admin_set_playtime(interaction: discord.Interaction, user: discord.Member, hours: int):
+        if interaction.user.id != ADMIN_USER_ID:
+            await interaction.response.send_message("❌ Admin only!", ephemeral=True)
+            return
+        
+        if hours < 0:
+            await interaction.response.send_message("❌ Playtime cannot be negative!", ephemeral=True)
+            return
+        
+        profile = profile_system.get_or_create_profile(user)
+        old_playtime = profile.playtime_hours
+        profile.playtime_hours = hours
+        profile_system.save_profiles()
+        
+        embed = discord.Embed(
+            title="✅ Playtime Updated (Admin)",
+            description=f"Updated {user.mention}'s playtime",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Old Value", value=f"{old_playtime} hours", inline=True)
+        embed.add_field(name="New Value", value=f"{hours} hours", inline=True)
+        embed.set_footer(text=f"Updated by {interaction.user.name}")
+        
+        await interaction.response.send_message(embed=embed)
+    
     
     # ==================== 5v5 TOURNAMENT COMMANDS ====================
     
