@@ -6,6 +6,7 @@ Additional helper methods for TeamMatch class
 
 import discord
 from typing import Optional
+from character_emojis import format_character_name
 
 
 class TeamMatchHelpers:
@@ -76,6 +77,8 @@ def create_round_summary_embed(match, round_num: int) -> discord.Embed:
     for i, role in enumerate(pattern["team_a"]):
         player = match.team_a[i]
         pick = match.team_a_picks.get(i, "❓ Not picked")
+        if i in match.team_a_picks:
+            pick = format_character_name(match.team_a_picks[i])
         emoji = "⚔️" if role == "killer" else "🏃"
         team_a_assignments.append(f"{emoji} {player.display_name}: {role.upper()} → {pick}")
     
@@ -90,6 +93,8 @@ def create_round_summary_embed(match, round_num: int) -> discord.Embed:
     for i, role in enumerate(pattern["team_b"]):
         player = match.team_b[i]
         pick = match.team_b_picks.get(i, "❓ Not picked")
+        if i in match.team_b_picks:
+            pick = format_character_name(match.team_b_picks[i])
         emoji = "⚔️" if role == "killer" else "🏃"
         team_b_assignments.append(f"{emoji} {player.display_name}: {role.upper()} → {pick}")
     
