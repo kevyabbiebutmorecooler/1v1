@@ -18,6 +18,7 @@ from team_matchmaking_part10 import (
     TOURNAMENT_WIN_POINTS,
     TOURNAMENT_LOSS_POINTS
 )
+from character_emojis import format_character_name
 
 
 class Tournament5v5System:
@@ -275,9 +276,10 @@ class Tournament5v5System:
         if match.selected_killer_character:
             attacking_members = match.get_team_members(match.get_attacking_team())
             killer_player = attacking_members[match.selected_killer_player_index]
+            formatted_killer = format_character_name(match.selected_killer_character)
             embed.add_field(
                 name="⚔️ Killer",
-                value=f"Player {match.selected_killer_player_index + 1}: {killer_player.mention}\n**{match.selected_killer_character}**",
+                value=f"Player {match.selected_killer_player_index + 1}: {killer_player.mention}\n**{formatted_killer}**",
                 inline=True
             )
         
@@ -294,6 +296,8 @@ class Tournament5v5System:
             for i in range(5):
                 player = defending_members[i]
                 pick = match.round_survivor_picks.get(i, "❌")
+                if i in match.round_survivor_picks:
+                    pick = format_character_name(match.round_survivor_picks[i])
                 picks_text.append(f"Player {i+1} ({player.display_name}): {pick}")
             
             embed.add_field(
