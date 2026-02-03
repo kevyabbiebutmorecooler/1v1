@@ -421,7 +421,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         app_commands.Choice(name="4v4", value="4v4"),
         app_commands.Choice(name="5v5 Tournament", value="5v5"),
     ])
-    async def set_point(interaction: discord.Interaction, user: discord.Member, mode: str, points: int):
+    async def set_point(interaction: discord.Interaction, user: discord.User, mode: str, points: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -445,7 +445,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         app_commands.Choice(name="4v4", value="4v4"),
         app_commands.Choice(name="5v5 Tournament", value="5v5"),
     ])
-    async def set_win(interaction: discord.Interaction, user: discord.Member, mode: str, wins: int):
+    async def set_win(interaction: discord.Interaction, user: discord.User, mode: str, wins: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -468,7 +468,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         app_commands.Choice(name="4v4", value="4v4"),
         app_commands.Choice(name="5v5 Tournament", value="5v5"),
     ])
-    async def set_loss(interaction: discord.Interaction, user: discord.Member, mode: str, losses: int):
+    async def set_loss(interaction: discord.Interaction, user: discord.User, mode: str, losses: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -545,7 +545,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         banner_url="Discord CDN image URL"
     )
-    async def admin_set_banner(interaction: discord.Interaction, user: discord.Member, banner_url: str):
+    async def admin_set_banner(interaction: discord.Interaction, user: discord.User, banner_url: str):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -578,7 +578,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         wins="Killer wins count"
     )
-    async def admin_set_killer_wins(interaction: discord.Interaction, user: discord.Member, wins: int):
+    async def admin_set_killer_wins(interaction: discord.Interaction, user: discord.User, wins: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -608,7 +608,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         wins="Survivor wins count"
     )
-    async def admin_set_survivor_wins(interaction: discord.Interaction, user: discord.Member, wins: int):
+    async def admin_set_survivor_wins(interaction: discord.Interaction, user: discord.User, wins: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -638,7 +638,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         bio="Bio text (max 200 characters)"
     )
-    async def admin_set_bio(interaction: discord.Interaction, user: discord.Member, bio: str):
+    async def admin_set_bio(interaction: discord.Interaction, user: discord.User, bio: str):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -671,7 +671,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         killer="Main killer character"
     )
-    async def admin_set_killer(interaction: discord.Interaction, user: discord.Member, killer: str):
+    async def admin_set_killer(interaction: discord.Interaction, user: discord.User, killer: str):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -703,7 +703,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         survivor="Main survivor character"
     )
-    async def admin_set_survivor(interaction: discord.Interaction, user: discord.Member, survivor: str):
+    async def admin_set_survivor(interaction: discord.Interaction, user: discord.User, survivor: str):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
@@ -735,7 +735,7 @@ def setup_all_commands(bot_client, tree: app_commands.CommandTree, matchmaking_1
         user="Target user",
         hours="Playtime in hours"
     )
-    async def admin_set_playtime(interaction: discord.Interaction, user: discord.Member, hours: int):
+    async def admin_set_playtime(interaction: discord.Interaction, user: discord.User, hours: int):
         if interaction.user.id != ADMIN_USER_ID:
             await interaction.response.send_message("❌ Admin only!", ephemeral=True)
             return
