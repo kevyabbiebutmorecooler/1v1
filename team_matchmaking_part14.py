@@ -14,6 +14,7 @@ import requests
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+from character_emojis import format_character_name
 
 
 class PlayerProfile:
@@ -144,9 +145,11 @@ def create_profile_embed(user: discord.Member, profile: PlayerProfile,
     # Mains section
     mains_text = ""
     if profile.main_killer:
-        mains_text += f"⚔️ **Killer Main:** {profile.main_killer}\n"
+        formatted_killer = format_character_name(profile.main_killer)
+        mains_text += f"⚔️ **Killer Main:** {formatted_killer}\n"
     if profile.main_survivor:
-        mains_text += f"🏃 **Survivor Main:** {profile.main_survivor}\n"
+        formatted_survivor = format_character_name(profile.main_survivor)
+        mains_text += f"🏃 **Survivor Main:** {formatted_survivor}\n"
     
     if mains_text:
         embed.add_field(
