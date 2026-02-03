@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application files
 COPY discordbot.py .
-COPY character_emojis.py
+COPY character_emojis.py .
 COPY ghost_player_commands.py .
 COPY railway_backup.py .
 COPY team_matchmaking_1v1.py .
